@@ -1,0 +1,63 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'eclipse'
+
+sourceCompatibility = 1.7
+group = 'org.sagacity.gradle'
+version = '1.0'
+description = "第一个gradle构建的java项目"
+// project.buildDir = 'target'定义编译目录
+
+ext{
+    springVersion = "4.1.0.RELEASE"
+} 
+
+// 为jar添加说明
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'my first gradle project',
+                   'Implementation-Version': version
+    }
+}
+
+// 配置仓库，使用nexus私服
+repositories {
+    maven {
+        url "http://211.166.11.233:8081/nexus/content/groups/public/"
+    }
+}
+
+// 配置项目依赖
+dependencies {
+    compile (
+        "org.springframework:spring-core:${springVersion}"
+    )
+    testCompile(
+        "junit:junit:4.10"
+    )
+}
+
+// 给test任务传递参数
+test {
+    systemProperties 'property': 'value'
+}
+
+// 发布jar包信息, 发布到nexus私服中
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            pom.groupId = "org.sagacity"
+            pom.artifactId = "org.sagacity.gradle.test"
+            pom.version = "1.0.0-SNAPSHOT"
+            repository(url: "http://211.166.11.233:8081/nexus/content/repositories/snapshots/") {
+                authentication(userName: "admin", password: "bjluyou")
+            }
+        }
+    }
+}
+
+// 自定义任务
+task copyJars(type: Copy) {
+    from configurations.runtime
+    into 'lib' // 目标位置
+}
